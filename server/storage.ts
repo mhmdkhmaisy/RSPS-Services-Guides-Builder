@@ -61,11 +61,11 @@ export class DatabaseStorage implements IStorage {
     if (result.length === 0) return undefined;
 
     const guide = result[0].guides;
-    const guideTags = result
+    const relatedTags = result
       .filter((row: any) => row.tags !== null)
       .map((row: any) => row.tags!);
 
-    return { ...guide, tags: guideTags };
+    return { ...guide, tags: relatedTags };
   }
 
   async getGuideBySlug(slug: string): Promise<GuideWithTags | undefined> {
@@ -79,11 +79,11 @@ export class DatabaseStorage implements IStorage {
     if (result.length === 0) return undefined;
 
     const guide = result[0].guides;
-    const guideTags = result
+    const relatedTags = result
       .filter((row: any) => row.tags !== null)
       .map((row: any) => row.tags!);
 
-    return { ...guide, tags: guideTags };
+    return { ...guide, tags: relatedTags };
   }
 
   async createGuide(guide: InsertGuide, tagIds: string[] = []): Promise<GuideWithTags> {
