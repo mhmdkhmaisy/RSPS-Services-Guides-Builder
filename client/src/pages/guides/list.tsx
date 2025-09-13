@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Input } from "@/components/ui/input";
@@ -13,14 +13,24 @@ import type { GuideWithTags, Tag } from "@shared/schema";
 
 export default function GuidesListPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState<string>("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
-  const { data: guides, isLoading: guidesLoading } = useQuery<GuideWithTags[]>({
-    queryKey: ["/api/guides", searchQuery, selectedTag],
+  // Debounce search query to avoid excessive API calls
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const { data: guides, isLoading: guidesLoading, isFetching } = useQuery<GuideWithTags[]>({
+    queryKey: ["/api/guides", debouncedSearchQuery, selectedTag],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (searchQuery) params.append('search', searchQuery);
+      if (debouncedSearchQuery) params.append('search', debouncedSearchQuery);
       if (selectedTag) params.append('tag', selectedTag);
       
       const url = `/api/guides${params.toString() ? `?${params.toString()}` : ''}`;
@@ -28,8 +38,9 @@ export default function GuidesListPage() {
       if (!response.ok) {
         throw new Error('Failed to fetch guides');
       }
-      return response.json();
+      return response.json() as GuideWithTags[];
     },
+    placeholderData: (previousData) => previousData,
   });
 
   const { data: tags, isLoading: tagsLoading } = useQuery<Tag[]>({
@@ -118,6 +129,11 @@ export default function GuidesListPage() {
             className="pl-10"
             data-testid="input-search"
           />
+          {isFetching && !guidesLoading && (
+            <div className="absolute right-3 top-3">
+              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            </div>
+          )}
         </div>
         <TagFilter
           tags={tags || []}
@@ -135,13 +151,13 @@ export default function GuidesListPage() {
               <div className="w-16 h-16 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center">
                 <Search className="w-8 h-8" />
               </div>
-              {searchQuery || selectedTag ? (
+              {debouncedSearchQuery || selectedTag ? (
                 <p>No guides found matching your criteria.</p>
               ) : (
                 <p>No guides created yet. Create your first guide to get started!</p>
               )}
             </div>
-            {!searchQuery && !selectedTag && (
+            {!debouncedSearchQuery && !selectedTag && (
               <Link href="/guides/new">
                 <Button data-testid="button-create-first-guide">
                   <Plus className="w-4 h-4 mr-2" />
