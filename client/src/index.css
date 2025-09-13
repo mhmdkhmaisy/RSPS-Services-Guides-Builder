@@ -1,0 +1,163 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(220, 13%, 5%);
+  --foreground: hsl(213, 31%, 81%);
+  --card: hsl(217, 19%, 11%);
+  --card-foreground: hsl(213, 31%, 81%);
+  --popover: hsl(217, 19%, 11%);
+  --popover-foreground: hsl(213, 31%, 81%);
+  --primary: hsl(217, 91%, 68%);
+  --primary-foreground: hsl(220, 13%, 5%);
+  --secondary: hsl(217, 19%, 19%);
+  --secondary-foreground: hsl(213, 31%, 81%);
+  --muted: hsl(217, 19%, 11%);
+  --muted-foreground: hsl(213, 20%, 63%);
+  --accent: hsl(217, 91%, 68%);
+  --accent-foreground: hsl(220, 13%, 5%);
+  --destructive: hsl(0, 63%, 31%);
+  --destructive-foreground: hsl(210, 40%, 98%);
+  --border: hsl(217, 19%, 19%);
+  --input: hsl(217, 19%, 19%);
+  --ring: hsl(217, 91%, 68%);
+  --chart-1: hsl(217, 91%, 68%);
+  --chart-2: hsl(159, 100%, 36%);
+  --chart-3: hsl(42, 93%, 56%);
+  --chart-4: hsl(147, 79%, 42%);
+  --chart-5: hsl(341, 75%, 51%);
+  --sidebar: hsl(217, 19%, 11%);
+  --sidebar-foreground: hsl(213, 31%, 81%);
+  --sidebar-primary: hsl(217, 91%, 68%);
+  --sidebar-primary-foreground: hsl(220, 13%, 5%);
+  --sidebar-accent: hsl(217, 91%, 68%);
+  --sidebar-accent-foreground: hsl(220, 13%, 5%);
+  --sidebar-border: hsl(217, 19%, 19%);
+  --sidebar-ring: hsl(217, 91%, 68%);
+  --font-sans: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  --radius: 0.5rem;
+  --shadow-2xs: 0px 1px 2px 0px hsl(220 13% 5% / 0.05);
+  --shadow-xs: 0px 1px 2px 0px hsl(220 13% 5% / 0.05);
+  --shadow-sm: 0px 1px 3px 0px hsl(220 13% 5% / 0.1), 0px 1px 2px -1px hsl(220 13% 5% / 0.1);
+  --shadow: 0px 1px 3px 0px hsl(220 13% 5% / 0.1), 0px 1px 2px -1px hsl(220 13% 5% / 0.1);
+  --shadow-md: 0px 4px 6px -1px hsl(220 13% 5% / 0.1), 0px 2px 4px -2px hsl(220 13% 5% / 0.1);
+  --shadow-lg: 0px 10px 15px -3px hsl(220 13% 5% / 0.1), 0px 4px 6px -4px hsl(220 13% 5% / 0.1);
+  --shadow-xl: 0px 20px 25px -5px hsl(220 13% 5% / 0.1), 0px 8px 10px -6px hsl(220 13% 5% / 0.1);
+  --shadow-2xl: 0px 25px 50px -12px hsl(220 13% 5% / 0.25);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+/* Editor specific styles */
+.editor-block {
+  position: relative;
+  margin: 1rem 0;
+}
+
+.block-toolbar {
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.editor-block:hover .block-toolbar {
+  opacity: 1;
+}
+
+.code-block {
+  position: relative;
+}
+
+.copy-button {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.code-block:hover .copy-button {
+  opacity: 1;
+}
+
+/* Prism.js theme override for dark mode */
+pre[class*="language-"] {
+  background: hsl(217, 19%, 11%) !important;
+  border: 1px solid hsl(217, 19%, 19%);
+  border-radius: 0.5rem;
+}
+
+code[class*="language-"] {
+  color: hsl(213, 31%, 81%) !important;
+}
+
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: hsl(213, 20%, 63%) !important;
+}
+
+.token.punctuation {
+  color: hsl(213, 31%, 81%) !important;
+}
+
+.token.property,
+.token.tag,
+.token.constant,
+.token.symbol,
+.token.deleted {
+  color: hsl(0, 86%, 74%) !important;
+}
+
+.token.boolean,
+.token.number {
+  color: hsl(35, 100%, 74%) !important;
+}
+
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin,
+.token.inserted {
+  color: hsl(128, 100%, 74%) !important;
+}
+
+.token.operator,
+.token.entity,
+.token.url,
+.language-css .token.string,
+.style .token.string,
+.token.variable {
+  color: hsl(217, 91%, 68%) !important;
+}
+
+.token.atrule,
+.token.attr-value,
+.token.function,
+.token.class-name {
+  color: hsl(275, 100%, 84%) !important;
+}
+
+.token.keyword {
+  color: hsl(317, 100%, 84%) !important;
+}
+
+.token.regex,
+.token.important {
+  color: hsl(35, 100%, 74%) !important;
+}
