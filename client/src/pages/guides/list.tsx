@@ -18,6 +18,18 @@ export default function GuidesListPage() {
 
   const { data: guides, isLoading: guidesLoading } = useQuery<GuideWithTags[]>({
     queryKey: ["/api/guides", searchQuery, selectedTag],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (searchQuery) params.append('search', searchQuery);
+      if (selectedTag) params.append('tag', selectedTag);
+      
+      const url = `/api/guides${params.toString() ? `?${params.toString()}` : ''}`;
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Failed to fetch guides');
+      }
+      return response.json();
+    },
   });
 
   const { data: tags, isLoading: tagsLoading } = useQuery<Tag[]>({

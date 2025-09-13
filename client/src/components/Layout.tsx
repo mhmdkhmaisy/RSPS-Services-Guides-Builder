@@ -23,16 +23,16 @@ export default function Layout({ children }: LayoutProps) {
               </Link>
               <nav className="hidden md:flex space-x-6">
                 <Link href="/guides">
-                  <a className={`transition-colors ${location === '/' || location === '/guides' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`} data-testid="nav-guides">
+                  <span className={`transition-colors cursor-pointer ${location === '/' || location === '/guides' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`} data-testid="nav-guides">
                     <BookOpen className="inline w-4 h-4 mr-1" />
                     Guides
-                  </a>
+                  </span>
                 </Link>
                 <Link href="/tags">
-                  <a className={`transition-colors ${location === '/tags' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`} data-testid="nav-tags">
+                  <span className={`transition-colors cursor-pointer ${location === '/tags' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`} data-testid="nav-tags">
                     <Tag className="inline w-4 h-4 mr-1" />
                     Tags
-                  </a>
+                  </span>
                 </Link>
               </nav>
             </div>
