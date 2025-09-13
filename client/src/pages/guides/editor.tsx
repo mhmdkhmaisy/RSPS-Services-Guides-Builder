@@ -48,10 +48,11 @@ export default function GuideEditorPage() {
 
   useEffect(() => {
     if (title && !isEditing) {
-      // Generate unique slug for new guides only
+      // Generate truly unique slug for new guides only
       const baseSlug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-      const timestamp = Date.now().toString(36);
-      const uniqueSlug = baseSlug ? `${baseSlug}-${timestamp}` : `guide-${timestamp}`;
+      const timestamp = Date.now();
+      const randomSuffix = Math.random().toString(36).substring(2, 8);
+      const uniqueSlug = baseSlug ? `${baseSlug}-${timestamp}-${randomSuffix}` : `guide-${timestamp}-${randomSuffix}`;
       setSlug(uniqueSlug);
     } else if (title && isEditing && !slug) {
       // For editing existing guides without slug, just use base logic
