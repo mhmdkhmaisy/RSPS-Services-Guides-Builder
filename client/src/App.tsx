@@ -7,6 +7,7 @@ import NotFound from "@/pages/not-found";
 import GuidesListPage from "@/pages/guides/list";
 import GuideEditorPage from "@/pages/guides/editor";
 import GuideViewerPage from "@/pages/guides/viewer";
+import TagsListPage from "@/pages/tags/list";
 import Layout from "@/components/Layout";
 
 function Router() {
@@ -18,6 +19,7 @@ function Router() {
         <Route path="/guides/new" component={GuideEditorPage} />
         <Route path="/guides/:id/edit" component={GuideEditorPage} />
         <Route path="/guides/:id" component={GuideViewerPage} />
+        <Route path="/tags" component={TagsListPage} />
         <Route component={NotFound} />
       </Switch>
     </Layout>
