@@ -5,6 +5,8 @@ import Paragraph from "@editorjs/paragraph";
 import CodeTool from "@editorjs/code";
 import List from "@editorjs/list";
 import Image from "@editorjs/image";
+import DragDrop from "editorjs-drag-drop";
+import Undo from "editorjs-undo";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
@@ -27,17 +29,8 @@ export default function BlockEditor({ initialData, onChange, placeholder }: Bloc
       placeholder: placeholder || "Start writing your guide...",
       data: initialData,
       tools: {
-        header: {
-          class: Header,
-          config: {
-            levels: [1, 2, 3, 4, 5, 6],
-            defaultLevel: 2,
-          },
-        },
-        paragraph: {
-          class: Paragraph,
-          inlineToolbar: true,
-        },
+        header: Header,
+        paragraph: Paragraph,
         code: {
           class: CodeTool,
           config: {
@@ -71,6 +64,10 @@ export default function BlockEditor({ initialData, onChange, placeholder }: Bloc
       },
       onReady: () => {
         setIsReady(true);
+        // Initialize drag and drop functionality
+        new DragDrop(editor);
+        // Initialize undo functionality
+        new Undo({ editor });
       },
     });
 
@@ -106,10 +103,12 @@ export default function BlockEditor({ initialData, onChange, placeholder }: Bloc
             variant="ghost"
             size="sm"
             onClick={() => {
-              // This would be handled by Editor.js built-in functionality
-              // Just for visual consistency with the design
+              if (editorRef.current) {
+                editorRef.current.blocks.insert('header', { text: 'New Header', level: 2 });
+              }
             }}
             data-testid="add-header-button"
+            disabled={!isReady}
           >
             <Plus className="w-4 h-4 mr-2" />
             Header
@@ -118,9 +117,12 @@ export default function BlockEditor({ initialData, onChange, placeholder }: Bloc
             variant="ghost"
             size="sm"
             onClick={() => {
-              // This would be handled by Editor.js built-in functionality
+              if (editorRef.current) {
+                editorRef.current.blocks.insert('paragraph', { text: 'Start typing...' });
+              }
             }}
             data-testid="add-text-button"
+            disabled={!isReady}
           >
             <Plus className="w-4 h-4 mr-2" />
             Text
@@ -129,9 +131,12 @@ export default function BlockEditor({ initialData, onChange, placeholder }: Bloc
             variant="ghost"
             size="sm"
             onClick={() => {
-              // This would be handled by Editor.js built-in functionality
+              if (editorRef.current) {
+                editorRef.current.blocks.insert('code', { code: '// Enter your code here' });
+              }
             }}
             data-testid="add-code-button"
+            disabled={!isReady}
           >
             <Plus className="w-4 h-4 mr-2" />
             Code
@@ -140,12 +145,15 @@ export default function BlockEditor({ initialData, onChange, placeholder }: Bloc
             variant="ghost"
             size="sm"
             onClick={() => {
-              // This would be handled by Editor.js built-in functionality
+              if (editorRef.current) {
+                editorRef.current.blocks.insert('list', { style: 'unordered', items: ['New list item'] });
+              }
             }}
-            data-testid="add-image-button"
+            data-testid="add-list-button"
+            disabled={!isReady}
           >
             <Plus className="w-4 h-4 mr-2" />
-            Image
+            List
           </Button>
         </div>
       </div>

@@ -38,7 +38,7 @@ export default function GuidesListPage() {
       if (!response.ok) {
         throw new Error('Failed to fetch guides');
       }
-      return response.json() as GuideWithTags[];
+      return await response.json() as GuideWithTags[];
     },
     placeholderData: (previousData) => previousData,
   });
