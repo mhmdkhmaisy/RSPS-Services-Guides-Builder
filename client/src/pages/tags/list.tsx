@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import CreateTagDialog from "@/components/CreateTagDialog";
 import { Plus, Tag as TagIcon } from "lucide-react";
 import type { Tag } from "@shared/schema";
 
@@ -46,10 +47,7 @@ export default function TagsListPage() {
             {tags?.length || 0} tags available
           </p>
         </div>
-        <Button data-testid="button-create-tag">
-          <Plus className="w-4 h-4 mr-2" />
-          Create Tag
-        </Button>
+        <CreateTagDialog />
       </div>
 
       {/* Tags Grid */}
@@ -62,10 +60,7 @@ export default function TagsListPage() {
               </div>
               <p>No tags created yet. Create your first tag to get started!</p>
             </div>
-            <Button data-testid="button-create-first-tag">
-              <Plus className="w-4 h-4 mr-2" />
-              Create Your First Tag
-            </Button>
+            <CreateTagDialog />
           </CardContent>
         </Card>
       ) : (

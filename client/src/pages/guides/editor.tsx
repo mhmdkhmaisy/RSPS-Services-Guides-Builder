@@ -47,10 +47,17 @@ export default function GuideEditorPage() {
   }, [guide]);
 
   useEffect(() => {
-    if (title) {
+    if (title && !isEditing) {
+      // Generate unique slug for new guides only
+      const baseSlug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      const timestamp = Date.now().toString(36);
+      const uniqueSlug = baseSlug ? `${baseSlug}-${timestamp}` : `guide-${timestamp}`;
+      setSlug(uniqueSlug);
+    } else if (title && isEditing && !slug) {
+      // For editing existing guides without slug, just use base logic
       setSlug(title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
     }
-  }, [title]);
+  }, [title, isEditing]);
 
   const createMutation = useMutation({
     mutationFn: async (data: any) => {

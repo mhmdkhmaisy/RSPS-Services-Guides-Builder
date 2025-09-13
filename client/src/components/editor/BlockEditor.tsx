@@ -24,10 +24,25 @@ export default function BlockEditor({ initialData, onChange, placeholder }: Bloc
   useEffect(() => {
     if (!holderRef.current || editorRef.current) return;
 
+    // Prepare initial data with validation
+    const preparedData = initialData ? {
+      time: initialData.time || Date.now(),
+      blocks: initialData.blocks ? initialData.blocks.map((block: any) => {
+        if (block.type === 'paragraph') {
+          const text = String(block.data?.text ?? block.data?.content ?? block.data ?? '');
+          return { ...block, data: { text } };
+        }
+        return block;
+      }) : [],
+      version: initialData.version || "2.28.2"
+    } : {
+      blocks: []
+    };
+
     const editor = new EditorJS({
       holder: holderRef.current,
       placeholder: placeholder || "Start writing your guide...",
-      data: initialData,
+      data: preparedData,
       tools: {
         header: Header,
         paragraph: Paragraph,
@@ -81,11 +96,7 @@ export default function BlockEditor({ initialData, onChange, placeholder }: Bloc
     };
   }, []);
 
-  useEffect(() => {
-    if (isReady && initialData && editorRef.current) {
-      editorRef.current.render(initialData);
-    }
-  }, [isReady, initialData]);
+  // Remove the problematic re-render effect - data is now validated during initialization
 
   return (
     <div className="editor-container">
