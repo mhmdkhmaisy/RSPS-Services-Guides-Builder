@@ -1,0 +1,291 @@
+**RSPS Guide Builder app with Laravel backend + React frontend**.
+This will be closer to a **Notion-lite** experience, with drag-and-drop guides, tags, TOC, copy buttons, and HTML export.
+
+---
+
+# 📘 RSPS Guide Builder (Laravel API + React Frontend)
+
+---
+
+## 🔹 Overall Architecture
+
+* **Backend: Laravel**
+
+  * REST or GraphQL API (`/api/guides`, `/api/tags`).
+  * Handles authentication (Laravel Sanctum recommended).
+  * Stores guides in DB as JSON.
+  * Provides **export endpoint** → generates `.html` file with inline CSS/JS.
+
+* **Frontend: React (Vite or CRA)**
+
+  * SPA with React Router.
+  * Uses `react-editor-js` or `tiptap-react` for Notion-style editing.
+  * Components: Editor, Viewer, TOC, GuideList.
+  * Styled with Tailwind (dark + blue theme).
+
+---
+
+## 🔹 Database Design (Laravel)
+
+**`guides`**
+
+```sql
+id BIGINT AUTO_INCREMENT PRIMARY KEY
+title VARCHAR(255)
+slug VARCHAR(255) UNIQUE
+description TEXT NULL
+content JSON -- Editor.js or TipTap JSON
+created_at TIMESTAMP
+updated_at TIMESTAMP
+```
+
+**`tags`**
+
+```sql
+id BIGINT AUTO_INCREMENT PRIMARY KEY
+name VARCHAR(100) UNIQUE
+slug VARCHAR(100) UNIQUE
+```
+
+**`guide_tag`**
+
+```sql
+guide_id BIGINT
+tag_id BIGINT
+PRIMARY KEY (guide_id, tag_id)
+```
+
+---
+
+## 🔹 Backend API (Laravel)
+
+* `GET /api/guides` → List all guides (with tags).
+* `POST /api/guides` → Create new guide.
+* `GET /api/guides/{id}` → Fetch guide by ID.
+* `PUT /api/guides/{id}` → Update guide (title + content JSON).
+* `DELETE /api/guides/{id}` → Delete guide.
+* `GET /api/guides/{id}/export` → Returns self-contained `.html`.
+
+---
+
+## 🔹 React Project Structure
+
+```
+src/
+  components/
+    Editor/GuideEditor.jsx
+    Viewer/GuideViewer.jsx
+    TOC/TOC.jsx
+    GuideList.jsx
+    CodeBlock.jsx
+    TagFilter.jsx
+  pages/
+    GuideEditorPage.jsx
+    GuideViewerPage.jsx
+    GuideListPage.jsx
+  api/
+    guides.js
+    tags.js
+  App.jsx
+  index.jsx
+```
+
+---
+
+## 🔹 React Components
+
+### 1. **GuideEditor.jsx** (Notion-style editor)
+
+Using `react-editor-js`:
+
+```jsx
+import React, { useRef } from 'react';
+import { createReactEditorJS } from 'react-editor-js';
+import Header from '@editorjs/header';
+import Code from '@editorjs/code';
+import Paragraph from '@editorjs/paragraph';
+import Image from '@editorjs/image';
+
+const ReactEditorJS = createReactEditorJS();
+
+const GuideEditor = ({ initialData, onSave }) => {
+  const editorCore = useRef(null);
+
+  const handleSave = async () => {
+    const savedData = await editorCore.current.save();
+    onSave(savedData);
+  };
+
+  return (
+    <div className="p-4 bg-[#0d1117] text-[#c9d1d9] min-h-screen">
+      <ReactEditorJS
+        defaultValue={initialData}
+        onInitialize={(instance) => (editorCore.current = instance)}
+        tools={{ header: Header, code: Code, paragraph: Paragraph, image: Image }}
+      />
+      <button
+        onClick={handleSave}
+        className="mt-4 px-4 py-2 rounded bg-[#21262d] text-[#58a6ff] hover:bg-[#30363d]"
+      >
+        Save
+      </button>
+    </div>
+  );
+};
+
+export default GuideEditor;
+```
+
+---
+
+### 2. **GuideViewer.jsx** (Render guide JSON → HTML)
+
+```jsx
+import React from 'react';
+import Prism from 'prismjs';
+import 'prismjs/components/prism-php';
+import 'prismjs/themes/prism-tomorrow.css';
+
+const GuideViewer = ({ guide }) => {
+  const blocks = guide.content.blocks;
+
+  return (
+    <div className="p-6 bg-[#0d1117] text-[#c9d1d9]">
+      <h1 className="text-2xl text-[#58a6ff] mb-4">{guide.title}</h1>
+      <p className="mb-6">{guide.description}</p>
+
+      {blocks.map((block, i) => {
+        if (block.type === 'header') {
+          return <h2 key={i} id={`section-${i}`} className="text-xl text-[#58a6ff] mt-6">{block.data.text}</h2>;
+        }
+        if (block.type === 'paragraph') {
+          return <p key={i} className="mb-3">{block.data.text}</p>;
+        }
+        if (block.type === 'code') {
+          return (
+            <div key={i} className="relative">
+              <pre className="bg-[#161b22] p-3 rounded-lg">
+                <code className="language-php">{block.data.code}</code>
+              </pre>
+              <button
+                className="copy-btn absolute top-2 right-2 px-2 py-1 text-xs rounded bg-[#21262d] text-[#58a6ff]"
+                onClick={() => navigator.clipboard.writeText(block.data.code)}
+              >
+                Copy
+              </button>
+            </div>
+          );
+        }
+        return null;
+      })}
+    </div>
+  );
+};
+
+export default GuideViewer;
+```
+
+---
+
+### 3. **TOC.jsx** (Sidebar with search)
+
+```jsx
+import React, { useState } from 'react';
+
+const TOC = ({ blocks }) => {
+  const [search, setSearch] = useState("");
+
+  return (
+    <aside className="w-64 bg-[#161b22] border-r border-[#30363d] p-4">
+      <input
+        type="text"
+        placeholder="Search section..."
+        className="w-full p-2 mb-3 rounded bg-[#0d1117] border border-[#30363d] text-[#c9d1d9]"
+        onChange={(e) => setSearch(e.target.value.toLowerCase())}
+      />
+      <ul>
+        {blocks
+          .filter(b => b.type === "header" && b.data.text.toLowerCase().includes(search))
+          .map((block, i) => (
+            <li key={i} className="mb-2">
+              <a href={`#section-${i}`} className="text-[#58a6ff] hover:underline">
+                {block.data.text}
+              </a>
+            </li>
+          ))}
+      </ul>
+    </aside>
+  );
+};
+
+export default TOC;
+```
+
+---
+
+## 🔹 Pages
+
+* **GuideListPage** → list guides, filter by tag.
+* **GuideEditorPage** → load guide + render `<GuideEditor />`.
+* **GuideViewerPage** → render `<TOC />` + `<GuideViewer />` side by side.
+
+---
+
+## 🔹 Export Flow
+
+1. In React → user clicks **Export** button.
+2. Calls backend: `GET /api/guides/{id}/export`.
+3. Laravel generates a **Blade view** with inline CSS + JS → downloads `.html`.
+
+Example Laravel export controller:
+
+```php
+public function export(Guide $guide) {
+    $html = view('guides.export', compact('guide'))->render();
+    $fileName = Str::slug($guide->title).'.html';
+    return response($html)
+        ->header('Content-Type', 'text/html')
+        ->header('Content-Disposition', "attachment; filename={$fileName}");
+}
+```
+
+---
+
+## 🔹 Styling (Dark + Blue)
+
+Tailwind config colors:
+
+```js
+theme: {
+  extend: {
+    colors: {
+      darkbg: "#0d1117",
+      darkpanel: "#161b22",
+      border: "#30363d",
+      text: "#c9d1d9",
+      accent: "#58a6ff",
+    },
+  },
+}
+```
+
+---
+
+## 🔹 Extra Features You Can Add
+
+* **Custom Editor.js blocks**: “NoteBlock” for tips/warnings.
+* **Drag-and-drop reorder (React DnD or SortableJS)** inside the editor.
+* **Tag-based homepage**: Guides grouped by Interfaces / Packets / Systems.
+* **Versioning**: Save multiple revisions per guide.
+* **Offline bundle**: Export multiple guides at once as `.zip` of HTML files.
+
+---
+
+✅ This gives you:
+
+* React-powered **Notion-like editor** (Editor.js + React).
+* Laravel backend storing JSON + handling exports.
+* Polished viewer with **TOC + copy buttons**.
+* Same **dark + blue theme** across editor, viewer, and exports.
+
+---
