@@ -24,16 +24,35 @@ export default function BlockEditor({ initialData, onChange, placeholder }: Bloc
   useEffect(() => {
     if (!holderRef.current || editorRef.current) return;
 
-    // Only do minimal validation - let Editor.js handle its own validation
+    // Normalize data structure to match Editor.js expectations
     const preparedData = initialData && initialData.blocks ? {
       time: initialData.time || Date.now(),
-      blocks: initialData.blocks,
+      blocks: initialData.blocks.map((block: any) => {
+        // Fix list items - Editor.js expects simple string arrays, not objects
+        if (block.type === 'list' && block.data?.items) {
+          const normalizedItems = block.data.items.map((item: any) => {
+            if (typeof item === 'string') return item;
+            if (typeof item === 'object' && item.content) return item.content;
+            return String(item);
+          });
+          return {
+            ...block,
+            data: {
+              ...block.data,
+              items: normalizedItems
+            }
+          };
+        }
+        return block;
+      }),
       version: initialData.version || "2.31.0"
     } : {
       blocks: [],
       time: Date.now(),
       version: "2.31.0"
     };
+
+    console.log('Prepared data for editor:', JSON.stringify(preparedData, null, 2));
 
     const editor = new EditorJS({
       holder: holderRef.current,
