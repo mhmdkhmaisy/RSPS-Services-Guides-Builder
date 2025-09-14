@@ -1,8 +1,48 @@
 import type { Express } from "express";
+import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertGuideSchema, insertTagSchema } from "@shared/schema";
 import { ZodError } from "zod";
+import multer from "multer";
+import path from "path";
+import { fileURLToPath } from "url";
+import fs from "fs";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Configure multer for image uploads
+const storage_config = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = path.join(__dirname, '../uploads/images');
+    // Ensure directory exists
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    // Generate unique filename
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: storage_config,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: function (req, file, cb) {
+    // Allow only image files
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'));
+    }
+  }
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Guide routes
@@ -172,6 +212,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to delete tag" });
     }
   });
+
+  // Image upload endpoint
+  app.post("/api/upload/image", upload.single('image'), (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No image file uploaded" });
+      }
+
+      // Return the file URL in the format expected by Editor.js
+      const fileUrl = `/uploads/images/${req.file.filename}`;
+      
+      res.json({
+        success: 1,
+        file: {
+          url: fileUrl
+        }
+      });
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      res.status(500).json({ 
+        success: 0,
+        message: "Failed to upload image" 
+      });
+    }
+  });
+
+  // Serve uploaded images as static files
+  app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
   const httpServer = createServer(app);
   return httpServer;
