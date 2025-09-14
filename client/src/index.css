@@ -93,6 +93,82 @@
   opacity: 1;
 }
 
+/* Editor.js specific header styles */
+.ce-header {
+  font-weight: bold;
+  color: hsl(var(--primary));
+  margin: 1rem 0;
+  line-height: 1.2;
+}
+
+.ce-header[data-level="1"] {
+  font-size: 2.25rem; /* text-4xl equivalent */
+  margin: 1.5rem 0;
+}
+
+.ce-header[data-level="2"] {
+  font-size: 1.875rem; /* text-3xl equivalent */
+  margin: 1.25rem 0;
+}
+
+.ce-header[data-level="3"] {
+  font-size: 1.5rem; /* text-2xl equivalent */
+  margin: 1rem 0;
+}
+
+.ce-header[data-level="4"] {
+  font-size: 1.25rem; /* text-xl equivalent */
+  margin: 0.875rem 0;
+}
+
+.ce-header[data-level="5"] {
+  font-size: 1.125rem; /* text-lg equivalent */
+  margin: 0.75rem 0;
+}
+
+.ce-header[data-level="6"] {
+  font-size: 1rem; /* text-base equivalent */
+  margin: 0.625rem 0;
+}
+
+/* Editor.js paragraph styles for contrast */
+.ce-paragraph {
+  color: hsl(var(--foreground));
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0.5rem 0;
+}
+
+/* Editor.js block container styles */
+.codex-editor .ce-block {
+  margin: 0.75rem 0;
+}
+
+.codex-editor .ce-block__content {
+  max-width: none;
+}
+
+/* Editor.js code block styles */
+.ce-code {
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  padding: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  color: hsl(var(--foreground));
+  overflow-x: auto;
+}
+
+/* Editor.js list styles */
+.ce-list {
+  color: hsl(var(--foreground));
+}
+
+.ce-list__item {
+  margin: 0.25rem 0;
+}
+
 /* Prism.js theme override for dark mode */
 pre[class*="language-"] {
   background: hsl(217, 19%, 11%) !important;
