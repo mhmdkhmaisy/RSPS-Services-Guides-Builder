@@ -24,43 +24,15 @@ export default function BlockEditor({ initialData, onChange, placeholder }: Bloc
   useEffect(() => {
     if (!holderRef.current || editorRef.current) return;
 
-    // Prepare initial data with comprehensive validation
-    const preparedData = initialData ? {
+    // Only do minimal validation - let Editor.js handle its own validation
+    const preparedData = initialData && initialData.blocks ? {
       time: initialData.time || Date.now(),
-      blocks: initialData.blocks ? initialData.blocks.map((block: any) => {
-        // Validate and fix different block types
-        switch (block.type) {
-          case 'paragraph':
-            const text = String(block.data?.text ?? block.data?.content ?? block.data ?? '');
-            return { ...block, data: { text } };
-          
-          case 'header':
-            const headerText = String(block.data?.text ?? block.data?.content ?? block.data ?? '');
-            const level = parseInt(block.data?.level) || 1;
-            return { ...block, data: { text: headerText, level: Math.min(Math.max(level, 1), 6) } };
-          
-          case 'code':
-            const code = String(block.data?.code ?? block.data?.content ?? block.data ?? '');
-            return { ...block, data: { code } };
-          
-          case 'list':
-            const items = Array.isArray(block.data?.items) ? 
-              block.data.items.map((item: any) => String(item)) : 
-              [String(block.data?.content ?? block.data ?? '')];
-            const style = block.data?.style === 'ordered' ? 'ordered' : 'unordered';
-            return { ...block, data: { style, items } };
-          
-          default:
-            // For unknown block types, ensure data is an object
-            return { 
-              ...block, 
-              data: typeof block.data === 'object' && block.data !== null ? block.data : {} 
-            };
-        }
-      }) : [],
-      version: initialData.version || "2.28.2"
+      blocks: initialData.blocks,
+      version: initialData.version || "2.31.0"
     } : {
-      blocks: []
+      blocks: [],
+      time: Date.now(),
+      version: "2.31.0"
     };
 
     const editor = new EditorJS({
