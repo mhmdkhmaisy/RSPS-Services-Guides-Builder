@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import TOC from "@/components/TOC";
-import { ArrowLeft, Edit, Download, Share2, Copy } from "lucide-react";
+import { ArrowLeft, Edit, Download, Share2, Copy, AlertCircle, Info, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 import type { GuideWithTags } from "@shared/schema";
 
@@ -308,6 +308,47 @@ function GuideBlock({ block, index }: GuideBlockProps) {
             </li>
           ))}
         </ListTag>
+      );
+
+    case 'callout':
+      const calloutStyles = {
+        note: {
+          bg: 'bg-blue-50 dark:bg-blue-950/30',
+          border: 'border-blue-200 dark:border-blue-800',
+          icon: AlertCircle,
+          iconColor: 'text-blue-600 dark:text-blue-400'
+        },
+        info: {
+          bg: 'bg-cyan-50 dark:bg-cyan-950/30',
+          border: 'border-cyan-200 dark:border-cyan-800',
+          icon: Info,
+          iconColor: 'text-cyan-600 dark:text-cyan-400'
+        },
+        warning: {
+          bg: 'bg-yellow-50 dark:bg-yellow-950/30',
+          border: 'border-yellow-200 dark:border-yellow-800',
+          icon: AlertTriangle,
+          iconColor: 'text-yellow-600 dark:text-yellow-400'
+        }
+      };
+      
+      const calloutType = block.data.type || 'note';
+      const style = calloutStyles[calloutType as keyof typeof calloutStyles] || calloutStyles.note;
+      const IconComponent = style.icon;
+      
+      return (
+        <div 
+          className={`rounded-lg border-l-4 p-4 mb-6 ${style.bg} ${style.border}`}
+          data-testid={`callout-${index}`}
+        >
+          <div className="flex items-start space-x-3">
+            <IconComponent className={`w-5 h-5 mt-0.5 flex-shrink-0 ${style.iconColor}`} />
+            <div 
+              className="text-foreground leading-relaxed flex-1"
+              dangerouslySetInnerHTML={{ __html: block.data.text }}
+            />
+          </div>
+        </div>
       );
 
     default:

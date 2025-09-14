@@ -1,11 +1,8 @@
-import { InlineTool, API } from '@editorjs/editorjs';
-
-export default class HighlightTool implements InlineTool {
-  private api: API;
-  private button: HTMLButtonElement | null = null;
-  private CSS = {
-    highlight: 'highlight'
-  };
+export default class HighlightTool {
+  private api: any;
+  private button: HTMLElement | null = null;
+  private tag: string = 'SPAN';
+  private class: string = 'highlight';
 
   static get isInline() {
     return true;
@@ -15,60 +12,77 @@ export default class HighlightTool implements InlineTool {
     return 'Highlight';
   }
 
-  constructor({ api }: { api: API }) {
+  get state() {
+    return this._state;
+  }
+
+  set state(state: boolean) {
+    this._state = state;
+    if (this.button) {
+      this.button.classList.toggle('ce-inline-tool--active', state);
+    }
+  }
+
+  private _state: boolean = false;
+
+  constructor({ api }: { api: any }) {
     this.api = api;
   }
 
-  render(): HTMLButtonElement {
-    this.button = document.createElement('button');
-    this.button.type = 'button';
-    this.button.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 19h18v2H3v-2zM13 5.83L15.17 8l-5.34 5.34L8 11.17L13 5.83zm4.24-2.24l1.41-1.41c.78-.78 2.05-.78 2.83 0l2.34 2.34c.78.78.78 2.05 0 2.83l-1.41 1.41L17.24 3.59z" fill="currentColor"/></svg>';
-    this.button.classList.add('ce-inline-tool');
+  render(): HTMLElement {
+    this.button = document.createElement('button') as HTMLButtonElement;
+    (this.button as HTMLButtonElement).type = 'button';
+    this.button.innerHTML = '🖍️';
     this.button.title = 'Highlight';
+    this.button.classList.add('ce-inline-tool');
 
     return this.button;
   }
 
   surround(range: Range): void {
-    if (!range) return;
+    if (this.state) {
+      this.unwrap(range);
+    } else {
+      this.wrap(range);
+    }
+  }
 
+  wrap(range: Range): void {
     const selectedText = range.extractContents();
-    const highlight = document.createElement('span');
+    const highlight = document.createElement(this.tag);
     
-    highlight.classList.add(this.CSS.highlight);
+    highlight.classList.add(this.class);
     highlight.appendChild(selectedText);
     range.insertNode(highlight);
+
+    this.api.selection.expandToTag(highlight);
   }
 
-  checkState(selection: Selection): boolean {
-    if (!selection || selection.rangeCount === 0) return false;
+  unwrap(range: Range): void {
+    const highlight = this.api.selection.findParentTag(this.tag, this.class);
+    if (!highlight) return;
 
-    const anchorNode = selection.anchorNode;
-    const element = anchorNode?.nodeType === Node.TEXT_NODE 
-      ? anchorNode.parentElement 
-      : anchorNode as Element;
-
-    return element?.closest(`.${this.CSS.highlight}`) !== null;
-  }
-
-  renderActions(): HTMLElement {
-    return document.createElement('div');
-  }
-
-  clear(): void {
-    // Remove highlight from selected text
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) return;
-
-    const range = selection.getRangeAt(0);
-    const element = range.commonAncestorContainer;
-    
-    if (element.nodeType === Node.TEXT_NODE) {
-      const parent = element.parentElement;
-      if (parent?.classList.contains(this.CSS.highlight)) {
-        const textNode = document.createTextNode(parent.textContent || '');
-        parent.parentNode?.replaceChild(textNode, parent);
+    // Safely unwrap by replacing the highlight element with its content
+    const parent = highlight.parentNode;
+    if (parent) {
+      while (highlight.firstChild) {
+        parent.insertBefore(highlight.firstChild, highlight);
       }
+      parent.removeChild(highlight);
     }
+  }
+
+  checkState(): boolean {
+    const highlight = this.api.selection.findParentTag(this.tag, this.class);
+    this.state = !!highlight;
+    return this.state;
+  }
+
+  static get sanitize() {
+    return {
+      span: {
+        class: 'highlight'
+      }
+    };
   }
 }

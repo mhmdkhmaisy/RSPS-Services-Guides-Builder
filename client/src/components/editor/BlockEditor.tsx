@@ -62,7 +62,7 @@ export default function BlockEditor({ initialData, onChange, placeholder, guideI
           class: HighlightTool,
         }
       },
-      inlineToolbar: ['bold', 'italic', 'link', 'highlight'],
+      inlineToolbar: ['bold', 'italic', 'highlight'],
       onChange: async () => {
         if (onChange && editorRef.current) {
           try {
@@ -179,17 +179,8 @@ export default function BlockEditor({ initialData, onChange, placeholder, guideI
 
   // Remove the problematic re-render effect - data is now validated during initialization
 
-  // Sticky toolbar logic
-  const [isScrolledUp, setIsScrolledUp] = useState(true);
-  
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolledUp(window.scrollY < 100);
-    };
-    
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  // Always sticky toolbar logic
+  const [showStickyToolbar] = useState(true);
 
   return (
     <div className="editor-container">
@@ -199,9 +190,9 @@ export default function BlockEditor({ initialData, onChange, placeholder, guideI
         data-testid="block-editor"
       />
       
-      {/* Add Block Toolbar - Made Sticky */}
+      {/* Add Block Toolbar - Always Fixed */}
       <div className={`mt-8 p-4 border border-dashed border-border rounded-lg bg-background/95 backdrop-blur-sm ${
-        isScrolledUp ? 'sticky bottom-4 z-50 shadow-lg' : ''
+        showStickyToolbar ? 'fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 shadow-lg max-w-4xl' : ''
       }`}>
         <div className="flex items-center justify-center space-x-2 flex-wrap gap-2">
           <p className="text-sm text-muted-foreground mr-4">Add block:</p>
