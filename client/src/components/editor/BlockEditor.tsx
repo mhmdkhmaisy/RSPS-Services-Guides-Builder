@@ -8,7 +8,9 @@ import Image from "@editorjs/image";
 import DragDrop from "editorjs-drag-drop";
 import Undo from "editorjs-undo";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, AlertCircle, Info, AlertTriangle, Highlighter } from "lucide-react";
+import CalloutTool from "./tools/CalloutTool";
+import HighlightTool from "./tools/HighlightTool";
 
 interface BlockEditorProps {
   initialData?: any;
@@ -55,7 +57,12 @@ export default function BlockEditor({ initialData, onChange, placeholder, guideI
             types: 'image/*',
           },
         },
+        callout: CalloutTool,
+        highlight: {
+          class: HighlightTool,
+        }
       },
+      inlineToolbar: ['bold', 'italic', 'link', 'highlight'],
       onChange: async () => {
         if (onChange && editorRef.current) {
           try {
@@ -172,6 +179,18 @@ export default function BlockEditor({ initialData, onChange, placeholder, guideI
 
   // Remove the problematic re-render effect - data is now validated during initialization
 
+  // Sticky toolbar logic
+  const [isScrolledUp, setIsScrolledUp] = useState(true);
+  
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolledUp(window.scrollY < 100);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <div className="editor-container">
       <div
@@ -180,10 +199,12 @@ export default function BlockEditor({ initialData, onChange, placeholder, guideI
         data-testid="block-editor"
       />
       
-      {/* Add Block Toolbar */}
-      <div className="mt-8 p-4 border border-dashed border-border rounded-lg">
-        <div className="flex items-center justify-center space-x-4">
-          <p className="text-sm text-muted-foreground mr-4">Add a new block:</p>
+      {/* Add Block Toolbar - Made Sticky */}
+      <div className={`mt-8 p-4 border border-dashed border-border rounded-lg bg-background/95 backdrop-blur-sm ${
+        isScrolledUp ? 'sticky bottom-4 z-50 shadow-lg' : ''
+      }`}>
+        <div className="flex items-center justify-center space-x-2 flex-wrap gap-2">
+          <p className="text-sm text-muted-foreground mr-4">Add block:</p>
           <Button
             variant="ghost"
             size="sm"
@@ -239,6 +260,48 @@ export default function BlockEditor({ initialData, onChange, placeholder, guideI
           >
             <Plus className="w-4 h-4 mr-2" />
             List
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              if (editorRef.current) {
+                editorRef.current.blocks.insert('callout', { text: 'Enter note text...', type: 'note' });
+              }
+            }}
+            data-testid="add-note-button"
+            disabled={!isReady}
+          >
+            <AlertCircle className="w-4 h-4 mr-2" />
+            Note
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              if (editorRef.current) {
+                editorRef.current.blocks.insert('callout', { text: 'Enter info text...', type: 'info' });
+              }
+            }}
+            data-testid="add-info-button"
+            disabled={!isReady}
+          >
+            <Info className="w-4 h-4 mr-2" />
+            Info
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              if (editorRef.current) {
+                editorRef.current.blocks.insert('callout', { text: 'Enter warning text...', type: 'warning' });
+              }
+            }}
+            data-testid="add-warning-button"
+            disabled={!isReady}
+          >
+            <AlertTriangle className="w-4 h-4 mr-2" />
+            Warning
           </Button>
         </div>
       </div>

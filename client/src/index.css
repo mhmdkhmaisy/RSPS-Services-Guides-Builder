@@ -93,6 +93,15 @@
   opacity: 1;
 }
 
+/* Highlight tool styles */
+.highlight {
+  background: rgba(59, 130, 246, 0.2);
+  padding: 2px 4px;
+  border-radius: 4px;
+  color: #60a5fa;
+  font-weight: 600;
+}
+
 /* Editor.js specific styles */
 .codex-editor {
   position: relative;
