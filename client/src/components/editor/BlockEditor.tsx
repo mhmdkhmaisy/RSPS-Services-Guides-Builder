@@ -111,7 +111,7 @@ export default function BlockEditor({ initialData, onChange, placeholder }: Bloc
             size="sm"
             onClick={() => {
               if (editorRef.current) {
-                editorRef.current.blocks.insert('header', { text: 'New Header', level: 2 });
+                editorRef.current.blocks.insert('header', { text: '', level: 2 });
               }
             }}
             data-testid="add-header-button"
@@ -125,7 +125,7 @@ export default function BlockEditor({ initialData, onChange, placeholder }: Bloc
             size="sm"
             onClick={() => {
               if (editorRef.current) {
-                editorRef.current.blocks.insert('paragraph', { text: 'Start typing...' });
+                editorRef.current.blocks.insert('paragraph', { text: '' });
               }
             }}
             data-testid="add-text-button"
@@ -139,7 +139,7 @@ export default function BlockEditor({ initialData, onChange, placeholder }: Bloc
             size="sm"
             onClick={() => {
               if (editorRef.current) {
-                editorRef.current.blocks.insert('code', { code: '// Enter your code here' });
+                editorRef.current.blocks.insert('code', { code: '' });
               }
             }}
             data-testid="add-code-button"
@@ -153,7 +153,7 @@ export default function BlockEditor({ initialData, onChange, placeholder }: Bloc
             size="sm"
             onClick={() => {
               if (editorRef.current) {
-                editorRef.current.blocks.insert('list', { style: 'unordered', items: ['New list item'] });
+                editorRef.current.blocks.insert('list', { style: 'unordered', items: [''] });
               }
             }}
             data-testid="add-list-button"

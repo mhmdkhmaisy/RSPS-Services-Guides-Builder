@@ -302,9 +302,9 @@ function GuideBlock({ block, index }: GuideBlockProps) {
       const ListTag = block.data.style === 'ordered' ? 'ol' : 'ul';
       return (
         <ListTag className="mb-4 pl-6 space-y-1" data-testid={`list-${index}`}>
-          {block.data.items.map((item: string, itemIndex: number) => (
+          {block.data.items.map((item: any, itemIndex: number) => (
             <li key={itemIndex} className="text-foreground">
-              {item}
+              {typeof item === 'string' ? item : (item?.content || item?.text || String(item))}
             </li>
           ))}
         </ListTag>

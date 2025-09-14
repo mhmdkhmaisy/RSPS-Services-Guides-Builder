@@ -1,0 +1,67 @@
+react-dom.development.js:29895 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+editorjs.mjs:136 Block «paragraph» skipped because saved data is invalid
+editorjs.mjs:136 Block «paragraph» skipped because saved data is invalid
+editorjs.mjs:136 Block «paragraph» skipped because saved data is invalid
+editorjs.mjs:136 Block «paragraph» skipped because saved data is invalid
+editorjs.mjs:136 Block «paragraph» skipped because saved data is invalid
+editorjs.mjs:136 Block «paragraph» skipped because saved data is invalid
+editorjs.mjs:136 Block «paragraph» skipped because saved data is invalid
+editorjs.mjs:136 Block «paragraph» skipped because saved data is invalid
+react-dom.development.js:13123  Uncaught Error: Objects are not valid as a React child (found: object with keys {content, meta, items}). If you meant to render a collection of children, use an array instead.
+    at throwOnInvalidObjectType (react-dom.development.js:13123:9)
+    at reconcileChildFibers2 (react-dom.development.js:14064:7)
+    at reconcileChildren (react-dom.development.js:19186:28)
+    at updateHostComponent (react-dom.development.js:19953:3)
+    at beginWork (react-dom.development.js:21657:14)
+    at HTMLUnknownElement.callCallback2 (react-dom.development.js:4164:14)
+    at Object.invokeGuardedCallbackDev (react-dom.development.js:4213:16)
+    at invokeGuardedCallback (react-dom.development.js:4277:31)
+    at beginWork$1 (react-dom.development.js:27490:7)
+    at performUnitOfWork (react-dom.development.js:26596:12)
+react-dom.development.js:13123  Uncaught Error: Objects are not valid as a React child (found: object with keys {content, meta, items}). If you meant to render a collection of children, use an array instead.
+    at throwOnInvalidObjectType (react-dom.development.js:13123:9)
+    at reconcileChildFibers2 (react-dom.development.js:14064:7)
+    at reconcileChildren (react-dom.development.js:19186:28)
+    at updateHostComponent (react-dom.development.js:19953:3)
+    at beginWork (react-dom.development.js:21657:14)
+    at HTMLUnknownElement.callCallback2 (react-dom.development.js:4164:14)
+    at Object.invokeGuardedCallbackDev (react-dom.development.js:4213:16)
+    at invokeGuardedCallback (react-dom.development.js:4277:31)
+    at beginWork$1 (react-dom.development.js:27490:7)
+    at performUnitOfWork (react-dom.development.js:26596:12)
+react-dom.development.js:18704  The above error occurred in the <li> component:
+
+    at li
+    at ul
+    at GuideBlock (https://e26f6435-f230-40e6-bce2-c28d1a20fc38-00-kijyqtf6uupp.riker.replit.dev/src/pages/guides/viewer.tsx:355:23)
+    at div
+    at div
+    at div
+    at main
+    at div
+    at div
+    at GuideViewerPage (https://e26f6435-f230-40e6-bce2-c28d1a20fc38-00-kijyqtf6uupp.riker.replit.dev/src/pages/guides/viewer.tsx:30:24)
+    at Route (https://e26f6435-f230-40e6-bce2-c28d1a20fc38-00-kijyqtf6uupp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=e6b912b5:323:16)
+    at Switch (https://e26f6435-f230-40e6-bce2-c28d1a20fc38-00-kijyqtf6uupp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=e6b912b5:379:17)
+    at div
+    at Layout (https://e26f6435-f230-40e6-bce2-c28d1a20fc38-00-kijyqtf6uupp.riker.replit.dev/src/components/Layout.tsx:21:34)
+    at Router
+    at Provider (https://e26f6435-f230-40e6-bce2-c28d1a20fc38-00-kijyqtf6uupp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-CPFHYHME.js?v=e6b912b5:58:15)
+    at TooltipProvider (https://e26f6435-f230-40e6-bce2-c28d1a20fc38-00-kijyqtf6uupp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=e6b912b5:2244:5)
+    at QueryClientProvider (https://e26f6435-f230-40e6-bce2-c28d1a20fc38-00-kijyqtf6uupp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=e6b912b5:2805:3)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+logCapturedError @ react-dom.development.js:18704
+react-dom.development.js:12056  Uncaught Error: Objects are not valid as a React child (found: object with keys {content, meta, items}). If you meant to render a collection of children, use an array instead.
+    at throwOnInvalidObjectType (react-dom.development.js:13123:9)
+    at reconcileChildFibers2 (react-dom.development.js:14064:7)
+    at reconcileChildren (react-dom.development.js:19186:28)
+    at updateHostComponent (react-dom.development.js:19953:3)
+    at beginWork (react-dom.development.js:21657:14)
+    at beginWork$1 (react-dom.development.js:27465:14)
+    at performUnitOfWork (react-dom.development.js:26596:12)
+    at workLoopSync (react-dom.development.js:26505:5)
+    at renderRootSync (react-dom.development.js:26473:7)
+    at recoverFromConcurrentError (react-dom.development.js:25889:20)
