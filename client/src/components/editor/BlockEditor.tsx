@@ -100,6 +100,34 @@ export default function BlockEditor({ initialData, onChange, placeholder, guideI
     const preparedData = initialData.blocks ? {
       time: initialData.time || Date.now(),
       blocks: initialData.blocks.map((block: any) => {
+        // Normalize header blocks
+        if (block.type === 'header') {
+          const text = block.data?.text || block.data?.content || "";
+          const level = Math.max(1, Math.min(6, Number(block.data?.level) || 2));
+          return {
+            ...block,
+            data: { text, level }
+          };
+        }
+        
+        // Normalize paragraph blocks
+        if (block.type === 'paragraph') {
+          const text = block.data?.text || block.data?.content || "";
+          return {
+            ...block,
+            data: { text }
+          };
+        }
+        
+        // Normalize code blocks
+        if (block.type === 'code') {
+          const code = block.data?.code || block.data?.text || "";
+          return {
+            ...block,
+            data: { code }
+          };
+        }
+        
         // Fix list items - Editor.js expects simple string arrays, not objects
         if (block.type === 'list' && block.data?.items) {
           const normalizedItems = block.data.items.map((item: any) => {
@@ -107,15 +135,24 @@ export default function BlockEditor({ initialData, onChange, placeholder, guideI
             if (typeof item === 'object' && item.content) return item.content;
             return String(item);
           });
+          const style = block.data.style || 'unordered';
           return {
             ...block,
             data: {
-              ...block.data,
+              style,
               items: normalizedItems
             }
           };
         }
+        
         return block;
+      }).filter((block: any) => {
+        // Filter out blocks with empty essential content
+        if (block.type === 'header' && !block.data?.text?.trim()) return false;
+        if (block.type === 'paragraph' && !block.data?.text?.trim()) return false;
+        if (block.type === 'code' && !block.data?.code?.trim()) return false;
+        if (block.type === 'list' && (!block.data?.items?.length || block.data.items.every((item: string) => !item?.trim()))) return false;
+        return true;
       }),
       version: initialData.version || "2.31.0"
     } : {
