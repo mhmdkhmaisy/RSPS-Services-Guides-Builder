@@ -147,11 +147,12 @@ export default function BlockEditor({ initialData, onChange, placeholder, guideI
         
         return block;
       }).filter((block: any) => {
-        // Filter out blocks with empty essential content
-        if (block.type === 'header' && !block.data?.text?.trim()) return false;
-        if (block.type === 'paragraph' && !block.data?.text?.trim()) return false;
-        if (block.type === 'code' && !block.data?.code?.trim()) return false;
-        if (block.type === 'list' && (!block.data?.items?.length || block.data.items.every((item: string) => !item?.trim()))) return false;
+        // Only filter out blocks that are completely empty or invalid
+        // Be less aggressive - preserve blocks with whitespace content
+        if (block.type === 'header' && (!block.data?.text || block.data.text === '')) return false;
+        if (block.type === 'paragraph' && (!block.data?.text || block.data.text === '')) return false;
+        if (block.type === 'code' && (!block.data?.code && block.data?.code !== '')) return false; // Keep even empty code blocks
+        if (block.type === 'list' && !block.data?.items?.length) return false;
         return true;
       }),
       version: initialData.version || "2.31.0"
