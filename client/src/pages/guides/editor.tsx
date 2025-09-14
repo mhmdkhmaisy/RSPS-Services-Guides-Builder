@@ -38,6 +38,7 @@ export default function GuideEditorPage() {
 
   useEffect(() => {
     if (guide) {
+      // Guide loaded successfully
       setTitle(guide.title);
       setDescription(guide.description || "");
       setContent(guide.content);
@@ -318,11 +319,14 @@ export default function GuideEditorPage() {
         <div className="lg:col-span-3">
           <Card className="min-h-[600px]">
             <CardContent className="p-6">
-              <BlockEditor
-                initialData={content}
-                onChange={setContent}
-                placeholder="Start writing your guide..."
-              />
+              {(!isEditing || content !== null) && (
+                <BlockEditor
+                  initialData={content}
+                  onChange={setContent}
+                  placeholder="Start writing your guide..."
+                  guideId={params?.id || 'new'}
+                />
+              )}
             </CardContent>
           </Card>
         </div>

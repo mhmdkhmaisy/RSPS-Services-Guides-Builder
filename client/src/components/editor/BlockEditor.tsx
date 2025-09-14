@@ -14,50 +14,24 @@ interface BlockEditorProps {
   initialData?: any;
   onChange?: (data: any) => void;
   placeholder?: string;
+  guideId?: string; // Used to detect when we're editing a different guide
 }
 
-export default function BlockEditor({ initialData, onChange, placeholder }: BlockEditorProps) {
+export default function BlockEditor({ initialData, onChange, placeholder, guideId }: BlockEditorProps) {
   const editorRef = useRef<EditorJS | null>(null);
   const holderRef = useRef<HTMLDivElement>(null);
   const [isReady, setIsReady] = useState(false);
+  const hasAppliedInitial = useRef(false);
+  const lastGuideId = useRef<string | undefined>(undefined);
 
+  // Initialize editor only once
   useEffect(() => {
     if (!holderRef.current || editorRef.current) return;
-
-    // Normalize data structure to match Editor.js expectations
-    const preparedData = initialData && initialData.blocks ? {
-      time: initialData.time || Date.now(),
-      blocks: initialData.blocks.map((block: any) => {
-        // Fix list items - Editor.js expects simple string arrays, not objects
-        if (block.type === 'list' && block.data?.items) {
-          const normalizedItems = block.data.items.map((item: any) => {
-            if (typeof item === 'string') return item;
-            if (typeof item === 'object' && item.content) return item.content;
-            return String(item);
-          });
-          return {
-            ...block,
-            data: {
-              ...block.data,
-              items: normalizedItems
-            }
-          };
-        }
-        return block;
-      }),
-      version: initialData.version || "2.31.0"
-    } : {
-      blocks: [],
-      time: Date.now(),
-      version: "2.31.0"
-    };
-
-    console.log('Prepared data for editor:', JSON.stringify(preparedData, null, 2));
 
     const editor = new EditorJS({
       holder: holderRef.current,
       placeholder: placeholder || "Start writing your guide...",
-      data: preparedData,
+      data: { blocks: [], time: Date.now(), version: "2.31.0" }, // Start with empty data
       tools: {
         header: Header,
         paragraph: Paragraph,
@@ -94,11 +68,14 @@ export default function BlockEditor({ initialData, onChange, placeholder }: Bloc
       },
       onReady: () => {
         setIsReady(true);
-        // Initialize drag and drop functionality
-        new DragDrop(editor);
-        // Initialize undo functionality
-        new Undo({ editor });
-      },
+        // Initialize editor plugins
+        try {
+          new DragDrop(editor);
+          new Undo({ editor });
+        } catch (error) {
+          console.error('Failed to initialize editor plugins:', error);
+        }
+      }
     });
 
     editorRef.current = editor;
@@ -110,6 +87,50 @@ export default function BlockEditor({ initialData, onChange, placeholder }: Bloc
       }
     };
   }, []);
+
+  // Apply initial content only once per guide to prevent re-render loops
+  useEffect(() => {
+    if (!editorRef.current || !isReady || !initialData) return;
+    
+    // Only apply initial data if we haven't applied it yet, or if we're editing a different guide
+    const guideChanged = guideId !== lastGuideId.current;
+    if (hasAppliedInitial.current && !guideChanged) return;
+
+    // Normalize data structure to match Editor.js expectations
+    const preparedData = initialData.blocks ? {
+      time: initialData.time || Date.now(),
+      blocks: initialData.blocks.map((block: any) => {
+        // Fix list items - Editor.js expects simple string arrays, not objects
+        if (block.type === 'list' && block.data?.items) {
+          const normalizedItems = block.data.items.map((item: any) => {
+            if (typeof item === 'string') return item;
+            if (typeof item === 'object' && item.content) return item.content;
+            return String(item);
+          });
+          return {
+            ...block,
+            data: {
+              ...block.data,
+              items: normalizedItems
+            }
+          };
+        }
+        return block;
+      }),
+      version: initialData.version || "2.31.0"
+    } : {
+      blocks: [],
+      time: Date.now(),
+      version: "2.31.0"
+    };
+
+    // Render the prepared data
+    editorRef.current.render(preparedData).catch(console.error);
+    
+    // Mark as applied and remember which guide this was for
+    hasAppliedInitial.current = true;
+    lastGuideId.current = guideId;
+  }, [initialData, isReady, guideId]);
 
   // Remove the problematic re-render effect - data is now validated during initialization
 
