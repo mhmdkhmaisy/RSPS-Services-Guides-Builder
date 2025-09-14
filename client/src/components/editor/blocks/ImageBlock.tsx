@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { GripVertical, Plus, Upload, Image as ImageIcon } from "lucide-react";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { GripVertical, Plus, Upload, Image as ImageIcon, ZoomIn } from "lucide-react";
 
 interface ImageBlockProps {
   data: {
-    file?: { url: string };
+    file?: { url: string; externalUrl?: string };
     url?: string;
     caption?: string;
   };
@@ -15,12 +16,22 @@ interface ImageBlockProps {
 }
 
 export default function ImageBlock({ data, onChange, onDelete }: ImageBlockProps) {
-  const [url, setUrl] = useState(data.file?.url || data.url || "");
+  // Prefer external URL for display, fallback to local URL
+  const displayUrl = data.file?.externalUrl || data.file?.url || data.url || "";
+  const [url, setUrl] = useState(displayUrl);
   const [caption, setCaption] = useState(data.caption || "");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleUrlChange = (value: string) => {
     setUrl(value);
-    onChange({ ...data, file: { url: value } });
+    // Preserve existing externalUrl if it exists
+    onChange({ 
+      ...data, 
+      file: { 
+        ...data.file,
+        url: value 
+      } 
+    });
   };
 
   const handleCaptionChange = (value: string) => {
@@ -28,13 +39,46 @@ export default function ImageBlock({ data, onChange, onDelete }: ImageBlockProps
     onChange({ ...data, caption: value });
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // In a real implementation, you'd upload the file to your server
-      // For now, we'll create a local URL for preview
-      const localUrl = URL.createObjectURL(file);
-      handleUrlChange(localUrl);
+      try {
+        // Create FormData for upload
+        const formData = new FormData();
+        formData.append('image', file);
+        
+        // Upload to server
+        const response = await fetch('/api/upload/image', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          // Update with both local and external URLs
+          const imageData = {
+            ...data,
+            file: {
+              url: result.file.url,
+              externalUrl: result.file.externalUrl
+            }
+          };
+          onChange(imageData);
+          // Use external URL for display if available
+          setUrl(result.file.externalUrl || result.file.url);
+        } else {
+          console.error('Upload failed:', result.message);
+          // Fallback to local preview
+          const localUrl = URL.createObjectURL(file);
+          handleUrlChange(localUrl);
+        }
+      } catch (error) {
+        console.error('Upload error:', error);
+        // Fallback to local preview
+        const localUrl = URL.createObjectURL(file);
+        handleUrlChange(localUrl);
+      }
     }
   };
 
@@ -63,12 +107,42 @@ export default function ImageBlock({ data, onChange, onDelete }: ImageBlockProps
         <div className="flex-1">
           {url ? (
             <figure>
-              <img 
-                src={url}
-                alt={caption || ""}
-                className="w-full rounded-lg border border-border max-h-96 object-cover"
-                data-testid="image-preview"
-              />
+              <div className="relative group/image">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <div className="cursor-pointer relative">
+                      <img 
+                        src={url}
+                        alt={caption || ""}
+                        className="max-w-full h-auto rounded-lg border border-border cursor-pointer hover:opacity-90 transition-opacity"
+                        data-testid="image-preview"
+                        style={{ objectFit: 'contain' }}
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="absolute top-2 right-2 opacity-0 group-hover/image:opacity-100 transition-opacity bg-black/50 hover:bg-black/70 text-white"
+                      >
+                        <ZoomIn className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl w-full">
+                    <div className="flex items-center justify-center p-4">
+                      <img 
+                        src={url}
+                        alt={caption || ""}
+                        className="max-w-full max-h-[80vh] object-contain"
+                      />
+                    </div>
+                    {caption && (
+                      <div className="text-center text-sm text-muted-foreground mt-2">
+                        {caption}
+                      </div>
+                    )}
+                  </DialogContent>
+                </Dialog>
+              </div>
               <div className="mt-4 space-y-2">
                 <div>
                   <Label htmlFor="caption" className="text-sm font-medium">
@@ -105,11 +179,8 @@ export default function ImageBlock({ data, onChange, onDelete }: ImageBlockProps
               <ImageIcon className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="file-upload" className="sr-only">
-                    Upload file
-                  </Label>
                   <input
-                    id="file-upload"
+                    ref={fileInputRef}
                     type="file"
                     accept="image/*"
                     onChange={handleFileUpload}
@@ -119,7 +190,7 @@ export default function ImageBlock({ data, onChange, onDelete }: ImageBlockProps
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => document.getElementById('file-upload')?.click()}
+                    onClick={() => fileInputRef.current?.click()}
                     data-testid="button-upload"
                   >
                     <Upload className="w-4 h-4 mr-2" />

@@ -213,20 +213,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Image upload endpoint
-  app.post("/api/upload/image", upload.single('image'), (req, res) => {
+  // Image upload endpoint with dual hosting (local + ImgBB)
+  app.post("/api/upload/image", upload.single('image'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No image file uploaded" });
       }
 
-      // Return the file URL in the format expected by Editor.js
-      const fileUrl = `/uploads/images/${req.file.filename}`;
-      
+      const localUrl = `/uploads/images/${req.file.filename}`;
+      let externalUrl = null;
+
+      // Upload to ImgBB for external hosting
+      try {
+        const imgbbApiKey = process.env.IMGBB_API_KEY;
+        if (imgbbApiKey) {
+          const imageBuffer = fs.readFileSync(req.file.path);
+          const base64Image = imageBuffer.toString('base64');
+          
+          const formData = new URLSearchParams();
+          formData.append('key', imgbbApiKey);
+          formData.append('image', base64Image);
+          
+          const imgbbResponse = await fetch('https://api.imgbb.com/1/upload', {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+          });
+          
+          const imgbbData = await imgbbResponse.json();
+          if (imgbbData.success) {
+            externalUrl = imgbbData.data.url;
+          }
+        }
+      } catch (imgbbError) {
+        console.error("Failed to upload to ImgBB:", imgbbError);
+        // Continue without external URL - local hosting will still work
+      }
+
+      // Return both URLs in the format expected by Editor.js
       res.json({
         success: 1,
         file: {
-          url: fileUrl
+          url: localUrl,
+          externalUrl: externalUrl
         }
       });
     } catch (error) {
@@ -243,6 +274,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
   return httpServer;
+}
+
+// HTML escape utility to prevent XSS
+function escapeHtml(unsafe: string): string {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 function generateHtmlExport(guide: any): string {
@@ -272,7 +313,7 @@ function generateHtmlExport(guide: any): string {
           const paddingLeft = (header.level - 1) * 0.75;
           return `
             <a href="#${header.id}" class="toc-link" style="padding-left: ${paddingLeft}rem;">
-              ${header.text}
+              ${escapeHtml(String(header.text || ''))}
             </a>
           `;
         }).join('')}
@@ -295,47 +336,53 @@ function generateHtmlExport(guide: any): string {
     switch (block.type) {
       case 'header':
         const level = block.data.level || 2;
-        contentHtml += `<h${level} id="section-${index}">${block.data.text}</h${level}>`;
+        contentHtml += `<h${level} id="section-${index}">${escapeHtml(block.data.text || '')}</h${level}>`;
         break;
       case 'paragraph':
-        contentHtml += `<p>${block.data.text}</p>`;
+        contentHtml += `<p>${escapeHtml(block.data.text || '')}</p>`;
         break;
       case 'code':
         const codeId = `code-${index}`;
         contentHtml += `
           <div class="code-block">
             <div class="code-header">
-              <span class="code-language">${block.data.language || 'code'}</span>
-              <button class="copy-btn" onclick="copyCode('${codeId}')" title="Copy code">
+              <span class="code-language">${escapeHtml(block.data.language || 'code')}</span>
+              <button class="copy-btn" onclick="copyCode(event, '${codeId}')" title="Copy code">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M16 1H4C2.9 1 2 1.9 2 3V17H4V3H16V1ZM19 5H8C6.9 5 6 5.9 6 7V21C6 22.1 6.9 23 8 23H19C20.1 23 21 22.1 21 21V7C21 5.9 20.1 5 19 5ZM19 21H8V7H19V21Z" fill="currentColor"/>
                 </svg>
                 Copy
               </button>
             </div>
-            <pre><code id="${codeId}" class="language-${block.data.language || 'javascript'}">${block.data.code}</code></pre>
+            <pre><code id="${codeId}" class="language-${escapeHtml(block.data.language || 'javascript')}">${escapeHtml(block.data.code || '')}</code></pre>
           </div>
         `;
         break;
       case 'list':
         const ListTag = block.data.style === 'ordered' ? 'ol' : 'ul';
         const items = block.data.items?.map((item: any) => 
-          `<li>${typeof item === 'string' ? item : (item?.content || item?.text || String(item))}</li>`
+          `<li>${escapeHtml(typeof item === 'string' ? item : (item?.content || item?.text || String(item)))}</li>`
         ).join('') || '';
         contentHtml += `<${ListTag}>${items}</${ListTag}>`;
         break;
       case 'image':
+        // Use external URL for export if available, fallback to local URL
+        const imageUrl = block.data.file?.externalUrl || block.data.file?.url || block.data.url || '';
         contentHtml += `
           <figure>
-            <img src="${block.data.file?.url || block.data.url}" alt="${block.data.caption || ''}" />
-            ${block.data.caption ? `<figcaption>${block.data.caption}</figcaption>` : ''}
+            <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(block.data.caption || '')}" />
+            ${block.data.caption ? `<figcaption>${escapeHtml(block.data.caption)}</figcaption>` : ''}
           </figure>
         `;
         break;
     }
   });
 
-  const tags = guide.tags?.map((tag: any) => `<span class="tag" style="background-color: ${tag.color}20; color: ${tag.color}; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem;">${tag.name}</span>`).join('') || '';
+  const tags = guide.tags?.map((tag: any) => {
+    // Validate tag color is a valid hex color or basic color name
+    const safeColor = /^#([0-9A-F]{3}){1,2}$/i.test(tag.color) || /^(red|blue|green|yellow|purple|orange|pink|gray|black|white)$/i.test(tag.color) ? tag.color : '#6b7280';
+    return `<span class="tag" style="background-color: ${escapeHtml(safeColor)}20; color: ${escapeHtml(safeColor)}; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem;">${escapeHtml(tag.name || '')}</span>`;
+  }).join('') || '';
 
   return `
 <!DOCTYPE html>
@@ -343,7 +390,7 @@ function generateHtmlExport(guide: any): string {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${guide.title} - RSPS Guide</title>
+    <title>${escapeHtml(guide.title || '')} - RSPS Guide</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
@@ -549,8 +596,8 @@ function generateHtmlExport(guide: any): string {
         ${tocHtml}
         <div class="main-content">
             <header>
-                <h1>${guide.title}</h1>
-                ${guide.description ? `<p style="color: hsl(213 20% 63%); font-size: 1.125rem; margin-bottom: 1rem;">${guide.description}</p>` : ''}
+                <h1>${escapeHtml(guide.title || '')}</h1>
+                ${guide.description ? `<p style="color: hsl(213 20% 63%); font-size: 1.125rem; margin-bottom: 1rem;">${escapeHtml(guide.description)}</p>` : ''}
                 <div class="tags">${tags}</div>
             </header>
             <main>
@@ -563,7 +610,7 @@ function generateHtmlExport(guide: any): string {
     </div>
     
     <script>
-        function copyCode(codeId) {
+        function copyCode(event, codeId) {
             const codeElement = document.getElementById(codeId);
             const button = event.target.closest('.copy-btn');
             
