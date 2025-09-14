@@ -313,22 +313,22 @@ function GuideBlock({ block, index }: GuideBlockProps) {
     case 'callout':
       const calloutStyles = {
         note: {
-          bg: 'bg-blue-50 dark:bg-blue-950/30',
-          border: 'border-blue-200 dark:border-blue-800',
+          bg: 'bg-blue-950/30',
+          border: 'border-blue-800',
           icon: AlertCircle,
-          iconColor: 'text-blue-600 dark:text-blue-400'
+          iconColor: 'text-blue-400'
         },
         info: {
-          bg: 'bg-cyan-50 dark:bg-cyan-950/30',
-          border: 'border-cyan-200 dark:border-cyan-800',
+          bg: 'bg-cyan-950/30',
+          border: 'border-cyan-800',
           icon: Info,
-          iconColor: 'text-cyan-600 dark:text-cyan-400'
+          iconColor: 'text-cyan-400'
         },
         warning: {
-          bg: 'bg-yellow-50 dark:bg-yellow-950/30',
-          border: 'border-yellow-200 dark:border-yellow-800',
+          bg: 'bg-yellow-950/30',
+          border: 'border-yellow-800',
           icon: AlertTriangle,
-          iconColor: 'text-yellow-600 dark:text-yellow-400'
+          iconColor: 'text-yellow-400'
         }
       };
       

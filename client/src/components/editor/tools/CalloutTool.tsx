@@ -134,7 +134,7 @@ export default class CalloutTool implements BlockTool {
       }
     };
     
-    const style = styles[this.data.type];
+    const style = styles[this.data.type] || styles.note;
     container.style.backgroundColor = style.bg;
     container.style.borderLeftColor = style.border;
     icon.innerHTML = style.icon;

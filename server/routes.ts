@@ -375,6 +375,29 @@ function generateHtmlExport(guide: any): string {
           </figure>
         `;
         break;
+      case 'callout':
+        const calloutType = block.data.type || 'note';
+        const calloutColors = {
+          note: { bg: '#1e3a8a20', border: '#1e40af', icon: '💡' },
+          info: { bg: '#0369a120', border: '#0284c7', icon: 'ℹ️' },
+          warning: { bg: '#a1620020', border: '#d97706', icon: '⚠️' }
+        };
+        const color = calloutColors[calloutType as keyof typeof calloutColors] || calloutColors.note;
+        contentHtml += `
+          <div class="callout callout-${calloutType}" style="
+            background-color: ${color.bg}; 
+            border-left: 4px solid ${color.border}; 
+            padding: 1rem; 
+            margin: 1rem 0; 
+            border-radius: 0.5rem;
+          ">
+            <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+              <span style="font-size: 1.25rem;">${color.icon}</span>
+              <div style="flex: 1;">${escapeHtml(block.data.text || '')}</div>
+            </div>
+          </div>
+        `;
+        break;
     }
   });
 
