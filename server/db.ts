@@ -1,12 +1,7 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
+import { drizzle } from 'drizzle-orm/better-sqlite3';
+import Database from 'better-sqlite3';
+import "dotenv/config";
 import * as schema from "@shared/schema";
-
-// Configure WebSocket for Neon with SSL handling
-neonConfig.webSocketConstructor = ws;
-neonConfig.useSecureWebSocket = true;
-neonConfig.pipelineConnect = false;
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -14,8 +9,6 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const pool = new Pool({ 
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false 
-});
-export const db = drizzle({ client: pool, schema });
+// For local development, use SQLite
+const sqlite = new Database('./local.db');
+export const db = drizzle(sqlite, { schema });

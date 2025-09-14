@@ -46,6 +46,7 @@ export class DatabaseStorage implements IStorage {
         guideMap.get(guide.id)!.tags.push(tag);
       }
     }
+  console.log("Fetched guides:", guideMap);
 
     return Array.from(guideMap.values());
   }

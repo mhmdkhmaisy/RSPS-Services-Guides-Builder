@@ -1,35 +1,35 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, json, timestamp, bigint } from "drizzle-orm/pg-core";
+import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const users = sqliteTable("users", {
+  id: text("id").primaryKey().default(sql`(lower(hex(randomblob(16))))`),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
 });
 
-export const guides = pgTable("guides", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  title: varchar("title", { length: 255 }).notNull(),
-  slug: varchar("slug", { length: 255 }).notNull().unique(),
+export const guides = sqliteTable("guides", {
+  id: text("id").primaryKey().default(sql`(lower(hex(randomblob(16))))`),
+  title: text("title").notNull(),
+  slug: text("slug").notNull().unique(),
   description: text("description"),
-  content: json("content").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  content: text("content", { mode: 'json' }).notNull(),
+  createdAt: integer("created_at", { mode: 'timestamp' }).default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).default(sql`(unixepoch())`),
 });
 
-export const tags = pgTable("tags", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: varchar("name", { length: 100 }).notNull().unique(),
-  slug: varchar("slug", { length: 100 }).notNull().unique(),
-  color: varchar("color", { length: 7 }).default('#58a6ff'),
+export const tags = sqliteTable("tags", {
+  id: text("id").primaryKey().default(sql`(lower(hex(randomblob(16))))`),
+  name: text("name").notNull().unique(),
+  slug: text("slug").notNull().unique(),
+  color: text("color").default('#58a6ff'),
 });
 
-export const guideTags = pgTable("guide_tags", {
-  guideId: varchar("guide_id").notNull().references(() => guides.id, { onDelete: "cascade" }),
-  tagId: varchar("tag_id").notNull().references(() => tags.id, { onDelete: "cascade" }),
+export const guideTags = sqliteTable("guide_tags", {
+  guideId: text("guide_id").notNull().references(() => guides.id, { onDelete: "cascade" }),
+  tagId: text("tag_id").notNull().references(() => tags.id, { onDelete: "cascade" }),
 });
 
 // Relations
